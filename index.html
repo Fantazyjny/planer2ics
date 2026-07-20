@@ -103,6 +103,13 @@
             cursor: pointer;
         }
 
+        /* Nowa klasa do wyrównania napisów "Alarm 1:", "Alarm 2:" itd. */
+        .alarm-label {
+            display: inline-block;
+            width: 70px;
+            font-weight: 600;
+        }
+
         .option-item select {
             background-color: #333;
             color: #fff;
@@ -111,6 +118,8 @@
             border-radius: 4px;
             margin-left: 10px;
             cursor: pointer;
+            flex-grow: 1;
+            max-width: 250px;
         }
 
         button {
@@ -150,18 +159,53 @@
         <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
 
         <div class="options-group">
-            <label>Ustawienia powiadomień:</label>
+            <label>Ustawienia powiadomień (wybierz do 3 alertów):</label>
+
             <div class="option-item">
-                <input type="checkbox" id="useAlarm" checked>
-                <span>Włącz alert w kalendarzu</span>
-                <select id="alarmOffset">
-                    <option value="0">Na początku okienka</option>
-                    <option value="1">1 minutę przed okienkiem</option>
-                    <option value="2">2 minuty przed okienkiem</option>
-                    <option value="5" selected>5 minut przed okienkiem</option>
-                    <option value="10">10 minut przed okienkiem</option>
+                <input type="checkbox" id="useAlarm1" checked>
+                <span class="alarm-label">Alarm 1:</span>
+                <select id="alarmOffset1">
+                    <option value="60">1 godzina przed</option>
+                    <option value="30" selected>30 minut przed</option>
+                    <option value="15">15 minut przed</option>
+                    <option value="10">10 minut przed</option>
+                    <option value="5">5 minut przed</option>
+                    <option value="2">2 minuty przed</option>
+                    <option value="1">1 minutę przed</option>
+                    <option value="0">Dokładnie o czasie</option>
                 </select>
             </div>
+
+            <div class="option-item">
+                <input type="checkbox" id="useAlarm2">
+                <span class="alarm-label">Alarm 2:</span>
+                <select id="alarmOffset2">
+                    <option value="60">1 godzina przed</option>
+                    <option value="30">30 minut przed</option>
+                    <option value="15">15 minut przed</option>
+                    <option value="10">10 minut przed</option>
+                    <option value="5" selected>5 minut przed</option>
+                    <option value="2">2 minuty przed</option>
+                    <option value="1">1 minutę przed</option>
+                    <option value="0">Dokładnie o czasie</option>
+                </select>
+            </div>
+
+            <div class="option-item">
+                <input type="checkbox" id="useAlarm3">
+                <span class="alarm-label">Alarm 3:</span>
+                <select id="alarmOffset3">
+                    <option value="60">1 godzina przed</option>
+                    <option value="30">30 minut przed</option>
+                    <option value="15">15 minut przed</option>
+                    <option value="10">10 minut przed</option>
+                    <option value="5">5 minut przed</option>
+                    <option value="2">2 minuty przed</option>
+                    <option value="1">1 minutę przed</option>
+                    <option value="0" selected>Dokładnie o czasie</option>
+                </select>
+            </div>
+
         </div>
 
         <button onclick="processPlanerData()">Generuj plik kalendarza</button>
@@ -185,8 +229,12 @@
 
         function processPlanerData() {
             const text = document.getElementById('rawData').value;
-            const useAlarm = document.getElementById('useAlarm').checked;
-            const alarmOffset = document.getElementById('alarmOffset').value;
+
+            // Pobieranie aktywnych alertów
+            const activeAlarms = [];
+            if (document.getElementById('useAlarm1').checked) activeAlarms.push(document.getElementById('alarmOffset1').value);
+            if (document.getElementById('useAlarm2').checked) activeAlarms.push(document.getElementById('alarmOffset2').value);
+            if (document.getElementById('useAlarm3').checked) activeAlarms.push(document.getElementById('alarmOffset3').value);
 
             if (!text.trim()) {
                 alert('Wklej najpierw kod rozpiski!');
@@ -214,7 +262,7 @@
                 let orderType = orderMatch ? orderMatch[1] : "Atak";
 
                 // Ustalanie emotki na podstawie typu rozkazu
-                let emoji = "⚔️"; // Domyślnie OFF lub inny atak
+                let emoji = "⚔️";
                 const typeUpper = orderType.toUpperCase();
 
                 if (typeUpper.includes("SZLACHCIC")) {
@@ -227,7 +275,7 @@
                     emoji = "🛡️";
                 }
 
-                // 2. Wyciąganie daty oraz czasu startu i końca okienka (np. 13:17:30 - 14:16:30)
+                // 2. Wyciąganie daty oraz czasu startu i końca okienka
                 const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
 
                 // 3. Wyciąganie koordynatów
@@ -253,7 +301,6 @@
 
                     const uid = `p2ics-${Date.now()}-${index}@planer`;
 
-                    // Tytuł z dobraną emotką
                     const summary = `${emoji} ${orderType} (${sourceCoords} -> ${targetCoords})`;
 
                     let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
@@ -269,20 +316,21 @@
                     icsEvents.push(`DTSTAMP:${icsStartTimestamp}`);
                     icsEvents.push(`DTSTART:${icsStartTimestamp}`);
                     icsEvents.push(`DTEND:${icsEndTimestamp}`);
-                    icsEvents.push(`SUMMARY:${summary}`); // Usunąłem sztywne ⚔️, bo emotka jest już w zmiennej summary
+                    icsEvents.push(`SUMMARY:${summary}`);
                     icsEvents.push(`DESCRIPTION:${description}`);
                     if (gameUrl) {
                         icsEvents.push(`URL:${gameUrl}`);
                     }
                     icsEvents.push(`STATUS:CONFIRMED`);
 
-                    if (useAlarm) {
+                    // Pętla dodająca wszystkie wybrane alerty
+                    activeAlarms.forEach(offset => {
                         icsEvents.push("BEGIN:VALARM");
-                        icsEvents.push(`TRIGGER:-PT${alarmOffset}M`);
+                        icsEvents.push(`TRIGGER:-PT${offset}M`);
                         icsEvents.push("ACTION:DISPLAY");
                         icsEvents.push(`DESCRIPTION:Otwiera się okienko na ${orderType}!`);
                         icsEvents.push("END:VALARM");
-                    }
+                    });
 
                     icsEvents.push("END:VEVENT");
                 }
