@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer2ICS - Konwerter Akcji Plemion</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --container-bg: #242424;
+            --accent-color: #ff9f43;
+            --text-color: #eeeeee;
+            --text-muted: #a0a0a0;
+            --border-color: #3d3d3d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 650px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        p.description {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            background-color: #111;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .options-group {
+            background-color: #1c1c1c;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .option-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .option-item select {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: #1a1a1a;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #e08b35;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>⚔️ Planer2ICS</h1>
+        <p class="description">Wklej kod BBCode wygenerowany przez planer ataków (z datami i linkami), ustaw
+            przypomnienia i wygeneruj plik .ics.</p>
+
+        <label for="rawData">Kod BBCode z planera:</label>
+        <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
+
+        <div class="options-group">
+            <label>Ustawienia powiadomień:</label>
+            <div class="option-item">
+                <input type="checkbox" id="useAlarm" checked>
+                <span>Włącz alert w kalendarzu</span>
+                <select id="alarmOffset">
+                    <option value="0">Dokładnie o czasie</option>
+                    <option value="1">1 minutę przed</option>
+                    <option value="2">2 minuty przed</option>
+                    <option value="5" selected>5 minut przed</option>
+                    <option value="10">10 minut przed</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="processPlanerData()">Generuj plik kalendarza</button>
+
+        <div class="footer">
+            Wszystko przetwarzane jest lokalnie w Twojej przeglądarce.
+        </div>
+    </div>
+
+    <script>
+        function parseDateToICS(dateStr, timeStr) {
+            const normalizedDateStr = dateStr.replace(/-/g, '/');
+            const localDate = new Date(`${normalizedDateStr} ${timeStr}`);
+
+            if (isNaN(localDate.getTime())) return null;
+
+            const pad = (n) => String(n).padStart(2, '0');
+
+            return `${localDate.getUTCFullYear()}${pad(localDate.getUTCMonth() + 1)}${pad(localDate.getUTCDate())}T${pad(localDate.getUTCHours())}${pad(localDate.getUTCMinutes())}${pad(localDate.getUTCSeconds())}Z`;
+        }
+
+        function processPlanerData() {
+            const text = document.getElementById('rawData').value;
+            const useAlarm = document.getElementById('useAlarm').checked;
+            const alarmOffset = document.getElementById('alarmOffset').value;
+
+            if (!text.trim()) {
+                alert('Wklej najpierw kod rozpiski!');
+                return;
+            }
+
+            // Dzielimy tekst na bloki pojedynczych ataków za pomocą numeracji "X. [b]"
+            const attackBlocks = text.split(/(?=\d+\.\s+\[b\])/);
+
+            let icsEvents = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Planer2ICS//PL",
+                "CALSCALE:GREGORIAN",
+                "METHOD:PUBLISH"
+            ];
+
+            let eventCount = 0;
+
+            attackBlocks.forEach((block, index) => {
+                if (!block.trim() || !block.includes('->')) return;
+
+                // 1. Wyciąganie typu rozkazu i wojska
+                // Szukamy np: Wyślij BURZAK[50k na ZAGRODA + 0 wojska] lub Wyślij FEJK[100 off]
+                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
+                let orderType = orderMatch ? orderMatch[1] : "Atak";
+
+                // 2. Wyciąganie daty i czasu startu okienka
+                // Szukamy formatu: 2026-07-20 [color=... ]13:17:30
+                const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})/);
+
+                // 3. Wyciąganie koordynatów
+                // Szukamy formatu: 526|456 [b]->[/b] 542|467
+                const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
+
+                // 4. Wyciąganie bezpośredniego linku do placu
+                // Szukamy formatu: [url=https://... ]Wyślij...
+                const urlMatch = block.match(/\[url=(https:\/\/[^\]]+)\]/);
+
+                if (dateTimeMatch && coordsMatch) {
+                    const dateStr = dateTimeMatch[1];
+                    const timeStr = dateTimeMatch[2];
+                    const icsTimestamp = parseDateToICS(dateStr, timeStr);
+
+                    if (!icsTimestamp) return;
+
+                    eventCount++;
+                    const sourceCoords = coordsMatch[1];
+                    const targetCoords = coordsMatch[2];
+                    const gameUrl = urlMatch ? urlMatch[1] : '';
+
+                    const uid = `p2ics-${Date.now()}-${index}@planer`;
+
+                    // Ładny i przejrzysty tytuł zdarzenia w kalendarzu
+                    const summary = `${orderType} (${sourceCoords} -> ${targetCoords})`;
+
+                    // Opis zdarzenia z linkiem na samym początku (łatwe klikanie na telefonie)
+                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
+                    if (gameUrl) {
+                        description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
+                    }
+                    description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
+
+                    // Bezpieczne kodowanie znaków dla ICS
+                    description = description.replace(/[,;]/g, '\\$&');
+
+                    icsEvents.push("BEGIN:VEVENT");
+                    icsEvents.push(`UID:${uid}`);
+                    icsEvents.push(`DTSTAMP:${icsTimestamp}`);
+                    icsEvents.push(`DTSTART:${icsTimestamp}`);
+                    icsEvents.push(`DURATION:PT1M`);
+                    icsEvents.push(`SUMMARY:⚔️ ${summary}`);
+                    icsEvents.push(`DESCRIPTION:${description}`);
+                    if (gameUrl) {
+                        icsEvents.push(`URL:${gameUrl}`);
+                    }
+                    icsEvents.push(`STATUS:CONFIRMED`);
+
+                    if (useAlarm) {
+                        icsEvents.push("BEGIN:VALARM");
+                        icsEvents.push(`TRIGGER:-PT${alarmOffset}M`);
+                        icsEvents.push("ACTION:DISPLAY");
+                        icsEvents.push(`DESCRIPTION:Czas wysłać ${orderType}!`);
+                        icsEvents.push("END:VALARM");
+                    }
+
+                    icsEvents.push("END:VEVENT");
+                }
+            });
+
+            icsEvents.push("END:VCALENDAR");
+
+            if (eventCount === 0) {
+                alert('Nie udało się dopasować struktury ataków. Upewnij się, że wklejasz pełną rozpiskę zawierającą numery zadań (np. 1. [b]), daty oraz koordynaty wiosek.');
+                return;
+            }
+
+            const finalIcs = icsEvents.join('\r\n');
+            const blob = new Blob([finalIcs], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `planer2ics_${Date.now()}.ics`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+</body>
+
+</html>
