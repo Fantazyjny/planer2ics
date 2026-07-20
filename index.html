@@ -494,6 +494,17 @@
             return "⚔️";
         };
 
+        const REGEX = {
+            blockSplit: /(?=\d+\.\s+\[b\])/,
+            order: /Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC)/i,
+            dateTime: /(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/,
+            coords: /(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/,
+            url: /\[url=(https:\/\/[^\]]+)\]/,
+            bbcodeTags: /\[\/?[^\]]+\]/g,
+            newlines: /[\r\n]+/g,
+            escapeChars: /[,;]/g
+        };
+
         // --- 3. GŁÓWNA LOGIKA APLIKACJI ---
         const processPlanerData = () => {
             const text = uiElements.rawData.value;
@@ -504,7 +515,7 @@
                 return;
             }
 
-            const attackBlocks = text.split(/(?=\d+\.\s+\[b\])/);
+            const attackBlocks = text.split(REGEX.blockSplit);
             const icsEvents = [
                 "BEGIN:VCALENDAR",
                 "VERSION:2.0",
@@ -517,6 +528,7 @@
             let firstAttackTime = null;
             let lastAttackTime = null;
             const timeWindows = [];
+            const timestamp = Date.now();
 
             attackBlocks.forEach((block, index) => {
                 if (!block.trim()) return;
@@ -526,14 +538,14 @@
                     return;
                 }
 
-                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC)/i);
+                const orderMatch = block.match(REGEX.order);
                 const orderType = orderMatch ? orderMatch[1] : "Atak";
                 const typeUpper = orderType.toUpperCase();
                 const emoji = getEmoji(typeUpper);
 
-                const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
-                const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
-                const urlMatch = block.match(/\[url=(https:\/\/[^\]]+)\]/);
+                const dateTimeMatch = block.match(REGEX.dateTime);
+                const coordsMatch = block.match(REGEX.coords);
+                const urlMatch = block.match(REGEX.url);
 
                 if (dateTimeMatch && coordsMatch) {
                     const [, dateStr, startTimeStr, endTimeStr] = dateTimeMatch;
@@ -567,13 +579,13 @@
                     const sourceCoords = coordsMatch[1];
                     const targetCoords = coordsMatch[2];
                     const gameUrl = urlMatch ? urlMatch[1] : '';
-                    const uid = `p2ics-${Date.now()}-${index}@planer`;
+                    const uid = `p2ics-${timestamp}-${index}@planer`;
                     const summary = `${emoji} ${orderType} (${sourceCoords} -> ${targetCoords})`;
 
                     let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
                     if (gameUrl) description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
-                    description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
-                    description = description.replace(/[,;]/g, '\\$&');
+                    description += `Pełny tekst rozkazu:\\n${block.replace(REGEX.bbcodeTags, '').replace(REGEX.newlines, ' ').trim()}`;
+                    description = description.replace(REGEX.escapeChars, '\\$&');
 
                     icsEvents.push(
                         "BEGIN:VEVENT",
@@ -728,9 +740,7 @@
             uiElements.summaryPanel.style.display = 'none';
             uiElements.inputArea.style.display = 'block';
         });
-    </script>
 
-    <script>
         // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
