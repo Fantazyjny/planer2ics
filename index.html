@@ -19,16 +19,14 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 10px;
-            /* Zmniejszony margines na telefonach */
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            /* Na mobile lepiej żeby apka zaczynała się od góry */
             min-height: 100vh;
             box-sizing: border-box;
         }
@@ -36,7 +34,6 @@
         .container {
             background-color: var(--container-bg);
             padding: 20px;
-            /* Mniejszy padding dla większej ilości miejsca na treść */
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             width: 100%;
@@ -49,7 +46,6 @@
             color: var(--accent-color);
             margin-top: 0;
             font-size: 22px;
-            /* Dostosowany nagłówek */
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
             text-align: center;
@@ -80,7 +76,6 @@
             padding: 12px;
             font-family: monospace;
             font-size: 16px;
-            /* 16px blokuje auto-zoom na urządzeniach z iOS! */
             resize: vertical;
             box-sizing: border-box;
             margin-bottom: 20px;
@@ -107,10 +102,8 @@
             display: flex;
             align-items: center;
             flex-wrap: wrap;
-            /* Pozwala elementom przenieść się do nowej linii na bardzo wąskich ekranach */
             margin-bottom: 15px;
             gap: 10px;
-            /* Równe odstępy */
         }
 
         .option-item:last-child {
@@ -126,11 +119,9 @@
         .option-item input[type="checkbox"] {
             margin: 0;
             width: 22px;
-            /* Większy kwadracik, łatwiejszy do trafienia palcem */
             height: 22px;
             cursor: pointer;
             accent-color: var(--accent-color);
-            /* Zmiana koloru natywnego checkboxa w nowych przeglądarkach */
         }
 
         .alarm-label {
@@ -151,9 +142,7 @@
             width: 100%;
             min-width: 150px;
             height: 44px;
-            /* Optymalna wysokość przycisku dla ekranów dotykowych (wytyczne Apple) */
             font-size: 16px;
-            /* Blokuje auto-zoom na iOS! */
         }
 
         button {
@@ -166,7 +155,7 @@
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: background 0.2s ease, transform 0.1s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
 
@@ -183,26 +172,20 @@
             color: var(--text-muted);
         }
 
-        /* Kontener główny podsumowania */
+        /* Sekcja podsumowania */
         .summary-container {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            margin-top: 10px;
         }
 
         .summary-container h2 {
             text-align: center;
             font-size: 1.4rem;
             margin-bottom: 20px;
-            color: #f0f0f0;
+            color: var(--text-color);
             font-weight: 600;
         }
 
-        /* Siatka statystyk 2x2 dla mobile */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -240,15 +223,14 @@
             color: #ffffff;
         }
 
-        /* Panel walidacyjny z zaokrągleniem i lewą ramką */
         .summary-details {
-            background-color: #222222;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
+            background-color: #1c1c1c;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
             font-size: 0.95rem;
+            border: 1px solid var(--border-color);
             border-left: 4px solid #4caf50;
-            /* Zielony akcent oznaczający powodzenie */
         }
 
         .summary-details p {
@@ -266,17 +248,6 @@
             margin-bottom: 0;
         }
 
-        .text-success {
-            color: #4caf50;
-            font-weight: bold;
-        }
-
-        .text-warning {
-            color: #ff9800;
-            font-weight: bold;
-        }
-
-        /* Duże, wygodne przyciski dla kciuka */
         .summary-actions {
             display: flex;
             flex-direction: column;
@@ -286,14 +257,8 @@
         .summary-actions button {
             padding: 16px;
             font-size: 1.1rem;
-            border: none;
             border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
             min-height: 54px;
-            /* Zgodnie z wytycznymi PWA dla ekranów dotykowych */
-            transition: background-color 0.2s ease;
         }
 
         .btn-primary {
@@ -314,7 +279,49 @@
             background-color: #555555;
         }
 
-        /* Dodatkowe ulepszenia tylko dla małych ekranów (np. telefony pionowo) */
+        .overlap-details {
+            border-left: 4px solid var(--accent-color);
+            background-color: #241d18;
+            /* Delikatnie ciepłe tło */
+            flex-direction: column;
+        }
+
+        .overlap-details p {
+            justify-content: center;
+            /* Wyśrodkowanie tekstu kumulacji */
+        }
+
+        .overlap-details .time-range {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1.05rem;
+            margin: 5px 0;
+        }
+
+        .overlap-details .ids-list {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0;
+        }
+
+        .overlap-item {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #444;
+        }
+
+        .overlap-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .overlap-count {
+            color: var(--accent-color);
+            font-size: 0.95rem;
+            margin-bottom: 2px !important;
+        }
+
         @media (max-width: 480px) {
             .option-item {
                 flex-direction: column;
@@ -325,23 +332,100 @@
                 margin-bottom: 5px;
             }
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #input-area,
+        #summary-panel {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
     </style>
 </head>
 
 <body>
-
     <div class="container">
         <h1>⚔️ Planer2ICS</h1>
-        <p class="description">Wklej kod BBCode wygenerowany przez planer ataków, ustaw
-            powiadomienia i wygeneruj plik kalendarza.</p>
+        <p class="description">Wklej kod BBCode wygenerowany przez planer ataków, ustaw powiadomienia i wygeneruj plik
+            kalendarza.</p>
 
-        <label for="rawData">Kod BBCode z planera:</label>
-        <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
+        <div id="input-area">
+            <label for="rawData">Kod BBCode z planera:</label>
+            <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
 
-        <div id="summary-panel" class="summary-container">
+            <div class="options-group">
+                <label>Ustawienia powiadomień (wybierz do 3 alertów):</label>
+
+                <!-- Alarm 1 -->
+                <div class="option-item">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useAlarm1" checked>
+                        <span class="alarm-label">Alarm 1:</span>
+                    </div>
+                    <select id="alarmOffset1">
+                        <option value="60">1 godzina przed</option>
+                        <option value="30">30 minut przed</option>
+                        <option value="15">15 minut przed</option>
+                        <option value="10">10 minut przed</option>
+                        <option value="5" selected>5 minut przed</option>
+                        <option value="2">2 minuty przed</option>
+                        <option value="1">1 minutę przed</option>
+                        <option value="0">Dokładnie o czasie (0 min)</option>
+                    </select>
+                </div>
+
+                <!-- Alarm 2 -->
+                <div class="option-item">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useAlarm2">
+                        <span class="alarm-label">Alarm 2:</span>
+                    </div>
+                    <select id="alarmOffset2">
+                        <option value="60">1 godzina przed</option>
+                        <option value="30">30 minut przed</option>
+                        <option value="15">15 minut przed</option>
+                        <option value="10">10 minut przed</option>
+                        <option value="5">5 minut przed</option>
+                        <option value="2">2 minuty przed</option>
+                        <option value="1" selected>1 minutę przed</option>
+                        <option value="0">Dokładnie o czasie (0 min)</option>
+                    </select>
+                </div>
+
+                <!-- Alarm 3 -->
+                <div class="option-item">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="useAlarm3">
+                        <span class="alarm-label">Alarm 3:</span>
+                    </div>
+                    <select id="alarmOffset3">
+                        <option value="60">1 godzina przed</option>
+                        <option value="30">30 minut przed</option>
+                        <option value="15">15 minut przed</option>
+                        <option value="10">10 minut przed</option>
+                        <option value="5">5 minut przed</option>
+                        <option value="2">2 minuty przed</option>
+                        <option value="1">1 minutę przed</option>
+                        <option value="0" selected>Dokładnie o czasie (0 min)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Przeniesiono akcję do Event Listenera -->
+            <button id="btn-process">Przetwórz i sprawdź rozkazy</button>
+        </div>
+
+        <div id="summary-panel" class="summary-container" style="display: none;">
             <h2>📊 Podsumowanie rozkazów</h2>
-
-            <!-- Siatka z ilością poszczególnych komend -->
             <div class="stats-grid">
                 <div class="stat-box">
                     <span class="stat-icon">⚔️</span>
@@ -364,115 +448,77 @@
                     <span class="stat-value" id="count-fejk">0</span>
                 </div>
             </div>
-
-            <!-- Szczegóły i walidacja -->
             <div class="summary-details">
-                <p>✅ Poprawne komendy: <strong id="count-total" class="text-success">0</strong></p>
-                <p>⚠️ Błędne linie: <strong id="count-errors" class="text-warning">0</strong></p>
                 <p>🕒 Pierwsza wysyłka: <strong id="time-first">-</strong></p>
                 <p>🕒 Ostatnia wysyłka: <strong id="time-last">-</strong></p>
             </div>
-
-            <!-- Przyciski akcji -->
+            <div id="overlap-container"></div>
             <div class="summary-actions">
                 <button id="btn-download" class="btn-primary">Pobierz kalendarz (.ics)</button>
                 <button id="btn-edit" class="btn-secondary">Wróć i edytuj</button>
             </div>
         </div>
-
-        <div class="options-group">
-            <label>Ustawienia powiadomień (wybierz do 3 alertów):</label>
-
-            <div class="option-item">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="useAlarm1" checked>
-                    <span class="alarm-label">Alarm 1:</span>
-                </div>
-                <select id="alarmOffset1">
-                    <option value="60">1 godzina przed</option>
-                    <option value="30">30 minut przed</option>
-                    <option value="15">15 minut przed</option>
-                    <option value="10">10 minut przed</option>
-                    <option value="5" selected>5 minut przed</option>
-                    <option value="2">2 minuty przed</option>
-                    <option value="1">1 minutę przed</option>
-                    <option value="0">Dokładnie o czasie (0 min)</option>
-                </select>
-            </div>
-
-            <div class="option-item">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="useAlarm2">
-                    <span class="alarm-label">Alarm 2:</span>
-                </div>
-                <select id="alarmOffset2">
-                    <option value="60">1 godzina przed</option>
-                    <option value="30">30 minut przed</option>
-                    <option value="15">15 minut przed</option>
-                    <option value="10">10 minut przed</option>
-                    <option value="5">5 minut przed</option>
-                    <option value="2">2 minuty przed</option>
-                    <option value="1" selected>1 minutę przed</option>
-                    <option value="0">Dokładnie o czasie (0 min)</option>
-                </select>
-            </div>
-
-            <div class="option-item">
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="useAlarm3">
-                    <span class="alarm-label">Alarm 3:</span>
-                </div>
-                <select id="alarmOffset3">
-                    <option value="60">1 godzina przed</option>
-                    <option value="30">30 minut przed</option>
-                    <option value="15">15 minut przed</option>
-                    <option value="10">10 minut przed</option>
-                    <option value="5">5 minut przed</option>
-                    <option value="2">2 minuty przed</option>
-                    <option value="1">1 minutę przed</option>
-                    <option value="0" selected>Dokładnie o czasie (0 min)</option>
-                </select>
-            </div>
-
-        </div>
-
-        <button onclick="processPlanerData()">Generuj plik kalendarza</button>
-
-        <div class="footer">
-            Wszystko przetwarzane jest lokalnie w Twojej przeglądarce.
-        </div>
+        <div class="footer">Wszystko przetwarzane jest lokalnie w Twojej przeglądarce.</div>
     </div>
 
     <script>
-        function parseDateToICS(dateStr, timeStr) {
+        // --- 1. ZMIENNE GLOBALNE I ELEMENTY DOM ---
+        let generatedICSContent = null;
+
+        const uiElements = {
+            inputArea: document.getElementById('input-area'),
+            summaryPanel: document.getElementById('summary-panel'),
+            rawData: document.getElementById('rawData'),
+            countOff: document.getElementById('count-off'),
+            countBurzak: document.getElementById('count-burzak'),
+            countSzlachcic: document.getElementById('count-szlachcic'),
+            countFejk: document.getElementById('count-fejk'),
+            timeFirst: document.getElementById('time-first'),
+            timeLast: document.getElementById('time-last')
+        };
+
+        // --- 2. FUNKCJE POMOCNICZE ---
+        const padNumber = (n) => String(n).padStart(2, '0');
+
+        const formatDisplayDate = (dateObj) => {
+            if (!dateObj) return '-';
+            return dateObj.toLocaleString('pl-PL', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        };
+
+        const parseDateToICS = (dateStr, timeStr) => {
             const normalizedDateStr = dateStr.replace(/-/g, '/');
             const localDate = new Date(`${normalizedDateStr} ${timeStr}`);
 
             if (isNaN(localDate.getTime())) return null;
 
-            const pad = (n) => String(n).padStart(2, '0');
+            return `${localDate.getUTCFullYear()}${padNumber(localDate.getUTCMonth() + 1)}${padNumber(localDate.getUTCDate())}T${padNumber(localDate.getUTCHours())}${padNumber(localDate.getUTCMinutes())}${padNumber(localDate.getUTCSeconds())}Z`;
+        };
 
-            return `${localDate.getUTCFullYear()}${pad(localDate.getUTCMonth() + 1)}${pad(localDate.getUTCDate())}T${pad(localDate.getUTCHours())}${pad(localDate.getUTCMinutes())}${pad(localDate.getUTCSeconds())}Z`;
-        }
+        const getActiveAlarms = () => {
+            const alarms = [];
+            for (let i = 1; i <= 3; i++) {
+                if (document.getElementById(`useAlarm${i}`).checked) {
+                    alarms.push(document.getElementById(`alarmOffset${i}`).value);
+                }
+            }
+            return alarms;
+        };
 
-        function processPlanerData() {
-            const text = document.getElementById('rawData').value;
-
-            // Pobieranie aktywnych alertów
-            const activeAlarms = [];
-            if (document.getElementById('useAlarm1').checked) activeAlarms.push(document.getElementById('alarmOffset1').value);
-            if (document.getElementById('useAlarm2').checked) activeAlarms.push(document.getElementById('alarmOffset2').value);
-            if (document.getElementById('useAlarm3').checked) activeAlarms.push(document.getElementById('alarmOffset3').value);
+        // --- 3. GŁÓWNA LOGIKA APLIKACJI ---
+        const processPlanerData = () => {
+            const text = uiElements.rawData.value;
+            const activeAlarms = getActiveAlarms();
 
             if (!text.trim()) {
                 alert('Wklej najpierw kod rozpiski!');
                 return;
             }
 
-            // Dzielimy tekst na bloki pojedynczych ataków za pomocą numeracji "X. [b]"
             const attackBlocks = text.split(/(?=\d+\.\s+\[b\])/);
-
-            let icsEvents = [
+            const icsEvents = [
                 "BEGIN:VCALENDAR",
                 "VERSION:2.0",
                 "PRODID:-//Planer2ICS//PL",
@@ -480,99 +526,225 @@
                 "METHOD:PUBLISH"
             ];
 
-            let eventCount = 0;
+            const stats = { off: 0, burzak: 0, szlachcic: 0, fejk: 0, errorCount: 0, eventCount: 0 };
+            let firstAttackTime = null;
+            let lastAttackTime = null;
+            const timeWindows = [];
 
             attackBlocks.forEach((block, index) => {
-                if (!block.trim() || !block.includes('->')) return;
+                if (!block.trim()) return;
 
-                // 1. Wyciąganie typu rozkazu i wojska
-                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
-                let orderType = orderMatch ? orderMatch[1] : "Atak";
-
-                // Ustalanie emotki na podstawie typu rozkazu
-                let emoji = "⚔️";
-                const typeUpper = orderType.toUpperCase();
-
-                if (typeUpper.includes("SZLACHCIC")) {
-                    emoji = "👑";
-                } else if (typeUpper.includes("BURZAK")) {
-                    emoji = "💣";
-                } else if (typeUpper.includes("FEJK")) {
-                    emoji = "🤡";
-                } else if (typeUpper.includes("WSPARCIE")) {
-                    emoji = "🛡️";
+                if (!block.includes('->')) {
+                    if (block.length > 10) stats.errorCount++;
+                    return;
                 }
 
-                // 2. Wyciąganie daty oraz czasu startu i końca okienka
+                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
+                const orderType = orderMatch ? orderMatch[1] : "Atak";
+                const typeUpper = orderType.toUpperCase();
+
+                let emoji = "⚔️";
+                if (typeUpper.includes("SZLACHCIC")) emoji = "👑";
+                else if (typeUpper.includes("BURZAK")) emoji = "💣";
+                else if (typeUpper.includes("FEJK")) emoji = "👻";
+                else if (typeUpper.includes("WSPARCIE")) emoji = "🛡️";
+
                 const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
-
-                // 3. Wyciąganie koordynatów
                 const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
-
-                // 4. Wyciąganie bezpośredniego linku do placu
                 const urlMatch = block.match(/\[url=(https:\/\/[^\]]+)\]/);
 
                 if (dateTimeMatch && coordsMatch) {
-                    const dateStr = dateTimeMatch[1];
-                    const startTimeStr = dateTimeMatch[2];
-                    const endTimeStr = dateTimeMatch[3];
+                    const [, dateStr, startTimeStr, endTimeStr] = dateTimeMatch;
 
                     const icsStartTimestamp = parseDateToICS(dateStr, startTimeStr);
                     const icsEndTimestamp = parseDateToICS(dateStr, endTimeStr);
 
-                    if (!icsStartTimestamp || !icsEndTimestamp) return;
+                    if (!icsStartTimestamp || !icsEndTimestamp) {
+                        stats.errorCount++;
+                        return;
+                    }
 
-                    eventCount++;
+                    stats.eventCount++;
+                    if (typeUpper.includes("SZLACHCIC")) stats.szlachcic++;
+                    else if (typeUpper.includes("BURZAK")) stats.burzak++;
+                    else if (typeUpper.includes("FEJK")) stats.fejk++;
+                    else stats.off++;
+
+                    const localStartDate = new Date(`${dateStr.replace(/-/g, '/')} ${startTimeStr}`);
+                    if (!firstAttackTime || localStartDate < firstAttackTime) firstAttackTime = localStartDate;
+                    if (!lastAttackTime || localStartDate > lastAttackTime) lastAttackTime = localStartDate;
+
+                    const localEndDate = new Date(`${dateStr.replace(/-/g, '/')} ${endTimeStr}`);
+                    timeWindows.push({
+                        start: localStartDate.getTime(),
+                        end: localEndDate.getTime(),
+                        id: stats.eventCount // Przypisujemy numer rozkazu z planera
+                    });
+
                     const sourceCoords = coordsMatch[1];
                     const targetCoords = coordsMatch[2];
                     const gameUrl = urlMatch ? urlMatch[1] : '';
-
                     const uid = `p2ics-${Date.now()}-${index}@planer`;
-
                     const summary = `${emoji} ${orderType} (${sourceCoords} -> ${targetCoords})`;
 
                     let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
-                    if (gameUrl) {
-                        description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
-                    }
-
+                    if (gameUrl) description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
                     description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
                     description = description.replace(/[,;]/g, '\\$&');
 
-                    icsEvents.push("BEGIN:VEVENT");
-                    icsEvents.push(`UID:${uid}`);
-                    icsEvents.push(`DTSTAMP:${icsStartTimestamp}`);
-                    icsEvents.push(`DTSTART:${icsStartTimestamp}`);
-                    icsEvents.push(`DTEND:${icsEndTimestamp}`);
-                    icsEvents.push(`SUMMARY:${summary}`);
-                    icsEvents.push(`DESCRIPTION:${description}`);
-                    if (gameUrl) {
-                        icsEvents.push(`URL:${gameUrl}`);
-                    }
+                    icsEvents.push(
+                        "BEGIN:VEVENT",
+                        `UID:${uid}`,
+                        `DTSTAMP:${icsStartTimestamp}`,
+                        `DTSTART:${icsStartTimestamp}`,
+                        `DTEND:${icsEndTimestamp}`,
+                        `SUMMARY:${summary}`,
+                        `DESCRIPTION:${description}`
+                    );
+
+                    if (gameUrl) icsEvents.push(`URL:${gameUrl}`);
                     icsEvents.push(`STATUS:CONFIRMED`);
 
-                    // Pętla dodająca wszystkie wybrane alerty
                     activeAlarms.forEach(offset => {
-                        icsEvents.push("BEGIN:VALARM");
-                        icsEvents.push(`TRIGGER:-PT${offset}M`);
-                        icsEvents.push("ACTION:DISPLAY");
-                        icsEvents.push(`DESCRIPTION:Otwiera się okienko na ${orderType}!`);
-                        icsEvents.push("END:VALARM");
+                        icsEvents.push(
+                            "BEGIN:VALARM",
+                            `TRIGGER:-PT${offset}M`,
+                            "ACTION:DISPLAY",
+                            `DESCRIPTION:Otwiera się okienko na ${orderType}!`,
+                            "END:VALARM"
+                        );
                     });
 
                     icsEvents.push("END:VEVENT");
+                } else {
+                    stats.errorCount++;
                 }
             });
 
             icsEvents.push("END:VCALENDAR");
 
-            if (eventCount === 0) {
+            if (stats.eventCount === 0) {
                 alert('Nie udało się dopasować struktury ataków. Upewnij się, że wklejasz pełną rozpiskę.');
                 return;
             }
 
-            const finalIcs = icsEvents.join('\r\n');
-            const blob = new Blob([finalIcs], { type: 'text/calendar;charset=utf-8' });
+            generatedICSContent = icsEvents.join('\r\n');
+
+            // --- ALGORYTM KUMULACJI WYSYŁEK (Z FILTROWANIEM PODZBIORÓW) ---
+            let overlapHTML = '';
+            if (timeWindows.length > 1) {
+                const events = [];
+                timeWindows.forEach(w => {
+                    events.push({ time: w.start, type: 1, id: w.id });
+                    events.push({ time: w.end, type: -1, id: w.id });
+                });
+
+                events.sort((a, b) => {
+                    if (a.time !== b.time) return a.time - b.time;
+                    return b.type - a.type;
+                });
+
+                let currentActive = new Set();
+                let lastTime = null;
+                let validIntervals = [];
+
+                events.forEach(ev => {
+                    if (lastTime !== null && ev.time > lastTime && currentActive.size >= 2) {
+                        validIntervals.push({
+                            start: lastTime,
+                            end: ev.time,
+                            count: currentActive.size,
+                            ids: Array.from(currentActive).sort((a, b) => a - b)
+                        });
+                    }
+
+                    if (ev.type === 1) {
+                        currentActive.add(ev.id);
+                    } else {
+                        currentActive.delete(ev.id);
+                    }
+
+                    lastTime = ev.time;
+                });
+
+                if (validIntervals.length > 0) {
+                    const uniqueGroups = [];
+                    const seenIds = new Set();
+
+                    validIntervals.forEach(interval => {
+                        const idsKey = interval.ids.join(',');
+                        if (!seenIds.has(idsKey)) {
+                            seenIds.add(idsKey);
+                            uniqueGroups.push(interval);
+                        } else {
+                            const existing = uniqueGroups.find(g => g.ids.join(',') === idsKey);
+                            if (interval.start < existing.start) existing.start = interval.start;
+                            if (interval.end > existing.end) existing.end = interval.end;
+                        }
+                    });
+
+                    // 1. Najpierw sortujemy po wielkości grupy malejąco
+                    uniqueGroups.sort((a, b) => b.count - a.count);
+
+                    // 2. FILTROWANIE PODZBIORÓW
+                    const filteredGroups = [];
+                    uniqueGroups.forEach(group => {
+                        // Sprawdzamy, czy numery tej grupy są całkowicie zawarte w jakiejś większej grupie,
+                        // którą już dodaliśmy do przefiltrowanej listy.
+                        const isSubset = filteredGroups.some(largerGroup =>
+                            group.ids.every(id => largerGroup.ids.includes(id))
+                        );
+
+                        if (!isSubset) {
+                            filteredGroups.push(group); // Jeśli to nowa kombinacja, dodajemy
+                        }
+                    });
+
+                    // 3. Ostateczne sortowanie (największe grupy na górze, potem chronologicznie)
+                    filteredGroups.sort((a, b) => {
+                        if (b.count !== a.count) return b.count - a.count;
+                        return a.start - b.start;
+                    });
+
+                    overlapHTML = `<div class="summary-details overlap-details">
+                        <p style="color: var(--accent-color); margin-bottom: 15px;">🔥 <strong>Szanse na multi-wysyłkę:</strong></p>`;
+
+                    filteredGroups.slice(0, 5).forEach(interval => {
+                        const s = new Date(interval.start).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        const e = new Date(interval.end).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                        overlapHTML += `
+                            <div class="overlap-item">
+                                <p class="overlap-count">📦 <strong>${interval.count} rozkazy naraz</strong></p>
+                                <p class="time-range">⏰ ${s} - ${e}</p>
+                                <p class="ids-list">Numery: ${interval.ids.join(', ')}</p>
+                            </div>
+                        `;
+                    });
+
+                    overlapHTML += `</div>`;
+                }
+            }
+            document.getElementById('overlap-container').innerHTML = overlapHTML;
+
+            // Aktualizacja widoku podsumowania
+            uiElements.countOff.textContent = stats.off;
+            uiElements.countBurzak.textContent = stats.burzak;
+            uiElements.countSzlachcic.textContent = stats.szlachcic;
+            uiElements.countFejk.textContent = stats.fejk;
+            uiElements.timeFirst.textContent = formatDisplayDate(firstAttackTime);
+            uiElements.timeLast.textContent = formatDisplayDate(lastAttackTime);
+
+            uiElements.inputArea.style.display = 'none';
+            uiElements.summaryPanel.style.display = 'block';
+        };
+
+        // --- 4. OBSŁUGA ZDARZEŃ (Event Listeners) ---
+        document.getElementById('btn-process').addEventListener('click', processPlanerData);
+
+        document.getElementById('btn-download').addEventListener('click', () => {
+            if (!generatedICSContent) return;
+            const blob = new Blob([generatedICSContent], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `planer2ics_${Date.now()}.ics`;
@@ -580,19 +752,21 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
+        });
+
+        document.getElementById('btn-edit').addEventListener('click', () => {
+            uiElements.summaryPanel.style.display = 'none';
+            uiElements.inputArea.style.display = 'block';
+        });
     </script>
 
     <script>
+        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('Service Worker zarejestrowany pomyślnie.');
-                    })
-                    .catch(error => {
-                        console.log('Błąd rejestracji Service Workera:', error);
-                    });
+                    .then(() => console.log('Service Worker zarejestrowany pomyślnie.'))
+                    .catch(error => console.log('Błąd rejestracji Service Workera:', error));
             });
         }
     </script>
