@@ -213,6 +213,20 @@
                 const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
                 let orderType = orderMatch ? orderMatch[1] : "Atak";
 
+                // Ustalanie emotki na podstawie typu rozkazu
+                let emoji = "⚔️"; // Domyślnie OFF lub inny atak
+                const typeUpper = orderType.toUpperCase();
+
+                if (typeUpper.includes("SZLACHCIC")) {
+                    emoji = "👑";
+                } else if (typeUpper.includes("BURZAK")) {
+                    emoji = "💣";
+                } else if (typeUpper.includes("FEJK")) {
+                    emoji = "🤡";
+                } else if (typeUpper.includes("WSPARCIE")) {
+                    emoji = "🛡️";
+                }
+
                 // 2. Wyciąganie daty oraz czasu startu i końca okienka (np. 13:17:30 - 14:16:30)
                 const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
 
@@ -239,25 +253,23 @@
 
                     const uid = `p2ics-${Date.now()}-${index}@planer`;
 
-                    const summary = `${orderType} (${sourceCoords} -> ${targetCoords})`;
+                    // Tytuł z dobraną emotką
+                    const summary = `${emoji} ${orderType} (${sourceCoords} -> ${targetCoords})`;
 
                     let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
                     if (gameUrl) {
                         description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
                     }
 
-                    // Bezpieczne czyszczenie bloków ze zbędnych spacji i enterów
                     description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
-
-                    // Ucieczka dla znaków przecinka i średnika (wymagane w formacie ICS)
                     description = description.replace(/[,;]/g, '\\$&');
 
                     icsEvents.push("BEGIN:VEVENT");
                     icsEvents.push(`UID:${uid}`);
                     icsEvents.push(`DTSTAMP:${icsStartTimestamp}`);
                     icsEvents.push(`DTSTART:${icsStartTimestamp}`);
-                    icsEvents.push(`DTEND:${icsEndTimestamp}`); // Pełny czas trwania okienka wysyłki
-                    icsEvents.push(`SUMMARY:⚔️ ${summary}`);
+                    icsEvents.push(`DTEND:${icsEndTimestamp}`);
+                    icsEvents.push(`SUMMARY:${summary}`); // Usunąłem sztywne ⚔️, bo emotka jest już w zmiennej summary
                     icsEvents.push(`DESCRIPTION:${description}`);
                     if (gameUrl) {
                         icsEvents.push(`URL:${gameUrl}`);
