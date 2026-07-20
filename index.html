@@ -241,13 +241,16 @@
 
                     const summary = `${orderType} (${sourceCoords} -> ${targetCoords})`;
 
-                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\n`;
+                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
                     if (gameUrl) {
-                        description += `LINK DO PLACU: ${gameUrl}\n\n`;
+                        description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
                     }
-                    description += `Pełny tekst rozkazu:\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[]+/g, ' ').trim()}`;
 
-                    description = description.replace(/[,;]/g, '\$&');
+                    // Bezpieczne czyszczenie bloków ze zbędnych spacji i enterów
+                    description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
+
+                    // Ucieczka dla znaków przecinka i średnika (wymagane w formacie ICS)
+                    description = description.replace(/[,;]/g, '\\$&');
 
                     icsEvents.push("BEGIN:VEVENT");
                     icsEvents.push(`UID:${uid}`);
@@ -280,31 +283,15 @@
                 return;
             }
 
-            // Generowanie pliku jako string
             const finalIcs = icsEvents.join('\r\n');
+            const blob = new Blob([finalIcs], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `planer2ics_${Date.now()}.ics`;
 
-            // Sprawdzamy, czy użytkownik korzysta z urządzenia Apple (Safari/iOS)
-            const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-            if (isApple) {
-                // Dla Safari na iOS: otwieramy dane bezpośrednio przez protokół data URL.
-                // Zmusza to system do natychmiastowego otwarcia systemowego Kalendarza bez pobierania na dysk.
-                window.open(`data:text/calendar;charset=utf-8,${encodeURIComponent(finalIcs)}`, '_parent');
-            } else {
-                // Dla Chrome/Firefox i innych przeglądarek: klasyczny, czysty mechanizm pobierania pliku
-                const blob = new Blob([finalIcs], { type: 'text/calendar;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `planer2ics_${Date.now()}.ics`;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                setTimeout(() => {
-                    URL.revokeObjectURL(link.href);
-                    document.body.removeChild(link);
-                }, 100);
-            }
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 
