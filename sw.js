@@ -1,4 +1,4 @@
-const CACHE_NAME = 'planer2ics-v2';
+const CACHE_NAME = 'planer2ics-v3';
 const urlsToCache = [
     './',
     './index.html',
@@ -16,12 +16,20 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    if (event.request.method !== 'GET') return;
+
     event.respondWith(
-        caches.match(event.request)
+        fetch(event.request)
             .then(response => {
-                // Zwraca wersję z cache, jeśli istnieje. Jeśli nie, pobiera z sieci.
-                return response || fetch(event.request);
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return response;
             })
+            .catch(() => caches.match(event.request))
     );
 });
 

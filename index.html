@@ -745,8 +745,21 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(() => console.log('Service Worker zarejestrowany pomyślnie.'))
+                    .then(reg => {
+                        console.log('Service Worker zarejestrowany pomyślnie.');
+                        // Wymuś sprawdzenie aktualizacji na serwerze przy wejściu na stronę
+                        reg.update();
+                    })
                     .catch(error => console.log('Błąd rejestracji Service Workera:', error));
+            });
+
+            // Automatyczne odświeżenie strony, gdy nowy Service Worker przejmuje kontrolę (nowy cache)
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>
