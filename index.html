@@ -183,6 +183,137 @@
             color: var(--text-muted);
         }
 
+        /* Kontener główny podsumowania */
+        .summary-container {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .summary-container h2 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #f0f0f0;
+            font-weight: 600;
+        }
+
+        /* Siatka statystyk 2x2 dla mobile */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #333333;
+        }
+
+        .stat-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #aaaaaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        /* Panel walidacyjny z zaokrągleniem i lewą ramką */
+        .summary-details {
+            background-color: #222222;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            border-left: 4px solid #4caf50;
+            /* Zielony akcent oznaczający powodzenie */
+        }
+
+        .summary-details p {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            color: #dddddd;
+        }
+
+        .summary-details p:first-child {
+            margin-top: 0;
+        }
+
+        .summary-details p:last-child {
+            margin-bottom: 0;
+        }
+
+        .text-success {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .text-warning {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        /* Duże, wygodne przyciski dla kciuka */
+        .summary-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .summary-actions button {
+            padding: 16px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            min-height: 54px;
+            /* Zgodnie z wytycznymi PWA dla ekranów dotykowych */
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background-color: #388e3c;
+        }
+
+        .btn-secondary {
+            background-color: #444444;
+            color: white;
+        }
+
+        .btn-secondary:active {
+            background-color: #555555;
+        }
+
         /* Dodatkowe ulepszenia tylko dla małych ekranów (np. telefony pionowo) */
         @media (max-width: 480px) {
             .option-item {
@@ -206,6 +337,48 @@
 
         <label for="rawData">Kod BBCode z planera:</label>
         <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
+
+        <div id="summary-panel" class="summary-container">
+            <h2>📊 Podsumowanie rozkazów</h2>
+
+            <!-- Siatka z ilością poszczególnych komend -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-icon">⚔️</span>
+                    <span class="stat-label">Offy</span>
+                    <span class="stat-value" id="count-off">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-icon">💥</span>
+                    <span class="stat-label">Burzaki</span>
+                    <span class="stat-value" id="count-burzak">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-icon">👑</span>
+                    <span class="stat-label">Szlachcice</span>
+                    <span class="stat-value" id="count-szlachcic">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-icon">👻</span>
+                    <span class="stat-label">Fejki</span>
+                    <span class="stat-value" id="count-fejk">0</span>
+                </div>
+            </div>
+
+            <!-- Szczegóły i walidacja -->
+            <div class="summary-details">
+                <p>✅ Poprawne komendy: <strong id="count-total" class="text-success">0</strong></p>
+                <p>⚠️ Błędne linie: <strong id="count-errors" class="text-warning">0</strong></p>
+                <p>🕒 Pierwsza wysyłka: <strong id="time-first">-</strong></p>
+                <p>🕒 Ostatnia wysyłka: <strong id="time-last">-</strong></p>
+            </div>
+
+            <!-- Przyciski akcji -->
+            <div class="summary-actions">
+                <button id="btn-download" class="btn-primary">Pobierz kalendarz (.ics)</button>
+                <button id="btn-edit" class="btn-secondary">Wróć i edytuj</button>
+            </div>
+        </div>
 
         <div class="options-group">
             <label>Ustawienia powiadomień (wybierz do 3 alertów):</label>
