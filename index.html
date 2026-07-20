@@ -51,7 +51,7 @@
             text-align: center;
         }
 
-        p.description {
+        .description {
             color: var(--text-muted);
             font-size: 14px;
             margin-bottom: 20px;
@@ -125,7 +125,6 @@
         }
 
         .alarm-label {
-            display: inline-block;
             font-weight: 600;
             font-size: 15px;
             white-space: nowrap;
@@ -159,9 +158,11 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
 
-        button:hover,
-        button:active {
+        button:hover {
             background-color: #e08b35;
+        }
+
+        button:active {
             transform: translateY(1px);
         }
 
@@ -173,11 +174,6 @@
         }
 
         /* Sekcja podsumowania */
-        .summary-container {
-            color: var(--text-color);
-            margin-top: 10px;
-        }
-
         .summary-container h2 {
             text-align: center;
             font-size: 1.4rem;
@@ -231,21 +227,16 @@
             font-size: 0.95rem;
             border: 1px solid var(--border-color);
             border-left: 4px solid #4caf50;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .summary-details p {
-            margin: 10px 0;
+            margin: 0;
             display: flex;
             justify-content: space-between;
             color: #dddddd;
-        }
-
-        .summary-details p:first-child {
-            margin-top: 0;
-        }
-
-        .summary-details p:last-child {
-            margin-bottom: 0;
         }
 
         .summary-actions {
@@ -266,6 +257,10 @@
             color: white;
         }
 
+        .btn-primary:hover {
+            background-color: #43a047;
+        }
+
         .btn-primary:active {
             background-color: #388e3c;
         }
@@ -275,14 +270,17 @@
             color: white;
         }
 
-        .btn-secondary:active {
+        .btn-secondary:hover {
             background-color: #555555;
+        }
+
+        .btn-secondary:active {
+            background-color: #333333;
         }
 
         .overlap-details {
             border-left: 4px solid var(--accent-color);
             background-color: #241d18;
-            flex-direction: column;
         }
 
         .overlap-details p {
@@ -306,6 +304,9 @@
             margin-bottom: 12px;
             padding-bottom: 8px;
             border-bottom: 1px dashed #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .overlap-item:last-child {
@@ -362,60 +363,7 @@
 
             <div class="options-group">
                 <label>Ustawienia powiadomień (wybierz do 3 alertów):</label>
-
-                <!-- Alarm 1 -->
-                <div class="option-item">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="useAlarm1" checked>
-                        <span class="alarm-label">Alarm 1:</span>
-                    </div>
-                    <select id="alarmOffset1">
-                        <option value="60">1 godzina przed</option>
-                        <option value="30">30 minut przed</option>
-                        <option value="15">15 minut przed</option>
-                        <option value="10">10 minut przed</option>
-                        <option value="5" selected>5 minut przed</option>
-                        <option value="2">2 minuty przed</option>
-                        <option value="1">1 minutę przed</option>
-                        <option value="0">Dokładnie o czasie (0 min)</option>
-                    </select>
-                </div>
-
-                <!-- Alarm 2 -->
-                <div class="option-item">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="useAlarm2">
-                        <span class="alarm-label">Alarm 2:</span>
-                    </div>
-                    <select id="alarmOffset2">
-                        <option value="60">1 godzina przed</option>
-                        <option value="30">30 minut przed</option>
-                        <option value="15">15 minut przed</option>
-                        <option value="10">10 minut przed</option>
-                        <option value="5">5 minut przed</option>
-                        <option value="2">2 minuty przed</option>
-                        <option value="1" selected>1 minutę przed</option>
-                        <option value="0">Dokładnie o czasie (0 min)</option>
-                    </select>
-                </div>
-
-                <!-- Alarm 3 -->
-                <div class="option-item">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="useAlarm3">
-                        <span class="alarm-label">Alarm 3:</span>
-                    </div>
-                    <select id="alarmOffset3">
-                        <option value="60">1 godzina przed</option>
-                        <option value="30">30 minut przed</option>
-                        <option value="15">15 minut przed</option>
-                        <option value="10">10 minut przed</option>
-                        <option value="5">5 minut przed</option>
-                        <option value="2">2 minuty przed</option>
-                        <option value="1">1 minutę przed</option>
-                        <option value="0" selected>Dokładnie o czasie (0 min)</option>
-                    </select>
-                </div>
+                <div id="alarms-container"></div>
             </div>
 
             <button id="btn-process">Przetwórz i sprawdź rozkazy</button>
@@ -459,6 +407,38 @@
     </div>
 
     <script>
+        // Generowanie pól konfiguracji alarmów
+        const alarmsConfig = [
+            { id: 1, checked: true, defaultVal: "30" },
+            { id: 2, checked: false, defaultVal: "10" },
+            { id: 3, checked: false, defaultVal: "0" }
+        ];
+
+        const alarmOptions = [
+            { value: "60", label: "1 godzina przed" },
+            { value: "30", label: "30 minut przed" },
+            { value: "15", label: "15 minut przed" },
+            { value: "10", label: "10 minut przed" },
+            { value: "5", label: "5 minut przed" },
+            { value: "2", label: "2 minuty przed" },
+            { value: "1", label: "1 minutę przed" },
+            { value: "0", label: "Dokładnie o czasie (0 min)" }
+        ];
+
+        document.getElementById('alarms-container').innerHTML = alarmsConfig.map(cfg => `
+            <div class="option-item">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="useAlarm${cfg.id}" ${cfg.checked ? 'checked' : ''}>
+                    <span class="alarm-label">Alarm ${cfg.id}:</span>
+                </div>
+                <select id="alarmOffset${cfg.id}">
+                    ${alarmOptions.map(opt => `
+                        <option value="${opt.value}" ${opt.value === cfg.defaultVal ? 'selected' : ''}>${opt.label}</option>
+                    `).join('')}
+                </select>
+            </div>
+        `).join('');
+
         // --- 1. ZMIENNE GLOBALNE I ELEMENTY DOM ---
         let generatedICSContent = null;
 
