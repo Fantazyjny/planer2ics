@@ -471,12 +471,20 @@
             countSzlachcic: document.getElementById('count-szlachcic'),
             countFejk: document.getElementById('count-fejk'),
             timeFirst: document.getElementById('time-first'),
-            timeLast: document.getElementById('time-last')
+            timeLast: document.getElementById('time-last'),
+            overlapContainer: document.getElementById('overlap-container'),
+            btnProcess: document.getElementById('btn-process'),
+            btnDownload: document.getElementById('btn-download'),
+            btnEdit: document.getElementById('btn-edit')
         };
 
-        // --- 2. FUNKCJE POMOCNICZE ---
-        const padNumber = (n) => String(n).padStart(2, '0');
+        // Skrócony dostęp do pól wyboru i selectów alarmów
+        const alarmPairs = [1, 2, 3].map(i => ({
+            checkbox: document.getElementById(`useAlarm${i}`),
+            select: document.getElementById(`alarmOffset${i}`)
+        }));
 
+        // --- 2. FUNKCJE POMOCNICZE ---
         const formatDisplayDate = (dateObj) => {
             if (!dateObj) return '-';
             return dateObj.toLocaleString('pl-PL', {
@@ -485,23 +493,25 @@
             });
         };
 
-        const parseDateToICS = (dateStr, timeStr) => {
-            const normalizedDateStr = dateStr.replace(/-/g, '/');
-            const localDate = new Date(`${normalizedDateStr} ${timeStr}`);
-
-            if (isNaN(localDate.getTime())) return null;
-
-            return `${localDate.getUTCFullYear()}${padNumber(localDate.getUTCMonth() + 1)}${padNumber(localDate.getUTCDate())}T${padNumber(localDate.getUTCHours())}${padNumber(localDate.getUTCMinutes())}${padNumber(localDate.getUTCSeconds())}Z`;
+        const formatDisplayTime = (timeMs) => {
+            return new Date(timeMs).toLocaleTimeString('pl-PL', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
         };
 
-        const getActiveAlarms = () => {
-            const alarms = [];
-            for (let i = 1; i <= 3; i++) {
-                if (document.getElementById(`useAlarm${i}`).checked) {
-                    alarms.push(document.getElementById(`alarmOffset${i}`).value);
-                }
-            }
-            return alarms;
+        const dateToICS = (dateObj) => {
+            return dateObj.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        };
+
+        const getActiveAlarms = () => alarmPairs
+            .filter(ap => ap.checkbox.checked)
+            .map(ap => ap.select.value);
+
+        const getEmoji = (typeUpper) => {
+            if (typeUpper.includes("SZLACHCIC")) return "👑";
+            if (typeUpper.includes("BURZAK")) return "💣";
+            if (typeUpper.includes("FEJK")) return "🤡";
+            return "⚔️";
         };
 
         // --- 3. GŁÓWNA LOGIKA APLIKACJI ---
@@ -539,11 +549,7 @@
                 const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC)/i);
                 const orderType = orderMatch ? orderMatch[1] : "Atak";
                 const typeUpper = orderType.toUpperCase();
-
-                let emoji = "⚔️";
-                if (typeUpper.includes("SZLACHCIC")) emoji = "👑";
-                else if (typeUpper.includes("BURZAK")) emoji = "💣";
-                else if (typeUpper.includes("FEJK")) emoji = "🤡";
+                const emoji = getEmoji(typeUpper);
 
                 const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
                 const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
@@ -551,14 +557,17 @@
 
                 if (dateTimeMatch && coordsMatch) {
                     const [, dateStr, startTimeStr, endTimeStr] = dateTimeMatch;
+                    const normalizedDateStr = dateStr.replace(/-/g, '/');
+                    const localStartDate = new Date(`${normalizedDateStr} ${startTimeStr}`);
+                    const localEndDate = new Date(`${normalizedDateStr} ${endTimeStr}`);
 
-                    const icsStartTimestamp = parseDateToICS(dateStr, startTimeStr);
-                    const icsEndTimestamp = parseDateToICS(dateStr, endTimeStr);
-
-                    if (!icsStartTimestamp || !icsEndTimestamp) {
+                    if (isNaN(localStartDate.getTime()) || isNaN(localEndDate.getTime())) {
                         stats.errorCount++;
                         return;
                     }
+
+                    const icsStartTimestamp = dateToICS(localStartDate);
+                    const icsEndTimestamp = dateToICS(localEndDate);
 
                     stats.eventCount++;
                     if (typeUpper.includes("SZLACHCIC")) stats.szlachcic++;
@@ -566,11 +575,9 @@
                     else if (typeUpper.includes("FEJK")) stats.fejk++;
                     else stats.off++;
 
-                    const localStartDate = new Date(`${dateStr.replace(/-/g, '/')} ${startTimeStr}`);
                     if (!firstAttackTime || localStartDate < firstAttackTime) firstAttackTime = localStartDate;
                     if (!lastAttackTime || localStartDate > lastAttackTime) lastAttackTime = localStartDate;
 
-                    const localEndDate = new Date(`${dateStr.replace(/-/g, '/')} ${endTimeStr}`);
                     timeWindows.push({
                         start: localStartDate.getTime(),
                         end: localEndDate.getTime(),
@@ -635,14 +642,11 @@
                     events.push({ time: w.end, type: -1, id: w.id });
                 });
 
-                events.sort((a, b) => {
-                    if (a.time !== b.time) return a.time - b.time;
-                    return b.type - a.type;
-                });
+                events.sort((a, b) => a.time !== b.time ? a.time - b.time : b.type - a.type);
 
-                let currentActive = new Set();
+                const currentActive = new Set();
                 let lastTime = null;
-                let validIntervals = [];
+                const validIntervals = [];
 
                 events.forEach(ev => {
                     if (lastTime !== null && ev.time > lastTime && currentActive.size >= 2) {
@@ -664,20 +668,20 @@
                 });
 
                 if (validIntervals.length > 0) {
-                    const uniqueGroups = [];
-                    const seenIds = new Set();
+                    const groupsMap = new Map();
 
                     validIntervals.forEach(interval => {
-                        const idsKey = interval.ids.join(',');
-                        if (!seenIds.has(idsKey)) {
-                            seenIds.add(idsKey);
-                            uniqueGroups.push(interval);
+                        const key = interval.ids.join(',');
+                        const existing = groupsMap.get(key);
+                        if (!existing) {
+                            groupsMap.set(key, { ...interval });
                         } else {
-                            const existing = uniqueGroups.find(g => g.ids.join(',') === idsKey);
                             if (interval.start < existing.start) existing.start = interval.start;
                             if (interval.end > existing.end) existing.end = interval.end;
                         }
                     });
+
+                    const uniqueGroups = Array.from(groupsMap.values());
 
                     // 1. Najpierw sortujemy po wielkości grupy malejąco
                     uniqueGroups.sort((a, b) => b.count - a.count);
@@ -685,43 +689,33 @@
                     // 2. FILTROWANIE PODZBIORÓW
                     const filteredGroups = [];
                     uniqueGroups.forEach(group => {
-                        // Sprawdzamy, czy numery tej grupy są całkowicie zawarte w jakiejś większej grupie,
-                        // którą już dodaliśmy do przefiltrowanej listy.
                         const isSubset = filteredGroups.some(largerGroup =>
                             group.ids.every(id => largerGroup.ids.includes(id))
                         );
 
                         if (!isSubset) {
-                            filteredGroups.push(group); // Jeśli to nowa kombinacja, dodajemy
+                            filteredGroups.push(group);
                         }
                     });
 
                     // 3. Ostateczne sortowanie (największe grupy na górze, potem chronologicznie)
-                    filteredGroups.sort((a, b) => {
-                        if (b.count !== a.count) return b.count - a.count;
-                        return a.start - b.start;
-                    });
+                    filteredGroups.sort((a, b) => b.count !== a.count ? b.count - a.count : a.start - b.start);
 
-                    overlapHTML = `<div class="summary-details overlap-details">
-                        <p style="color: var(--accent-color); margin-bottom: 15px;">🔥 <strong>Szanse na multi-wysyłkę:</strong></p>`;
-
-                    filteredGroups.slice(0, 5).forEach(interval => {
-                        const s = new Date(interval.start).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        const e = new Date(interval.end).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                        overlapHTML += `
-                            <div class="overlap-item">
-                                <p class="overlap-count">📦 <strong>${interval.count} rozkazy naraz</strong></p>
-                                <p class="time-range">⏰ ${s} - ${e}</p>
-                                <p class="ids-list">Numery: ${interval.ids.join(', ')}</p>
-                            </div>
-                        `;
-                    });
-
-                    overlapHTML += `</div>`;
+                    overlapHTML = `
+                        <div class="summary-details overlap-details">
+                            <p style="color: var(--accent-color); margin-bottom: 15px;">🔥 <strong>Szanse na multi-wysyłkę:</strong></p>
+                            ${filteredGroups.slice(0, 5).map(interval => `
+                                <div class="overlap-item">
+                                    <p class="overlap-count">📦 <strong>${interval.count} rozkazy naraz</strong></p>
+                                    <p class="time-range">⏰ ${formatDisplayTime(interval.start)} - ${formatDisplayTime(interval.end)}</p>
+                                    <p class="ids-list">Numery: ${interval.ids.join(', ')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
                 }
             }
-            document.getElementById('overlap-container').innerHTML = overlapHTML;
+            uiElements.overlapContainer.innerHTML = overlapHTML;
 
             // Aktualizacja widoku podsumowania
             uiElements.countOff.textContent = stats.off;
@@ -736,9 +730,9 @@
         };
 
         // --- 4. OBSŁUGA ZDARZEŃ (Event Listeners) ---
-        document.getElementById('btn-process').addEventListener('click', processPlanerData);
+        uiElements.btnProcess.addEventListener('click', processPlanerData);
 
-        document.getElementById('btn-download').addEventListener('click', () => {
+        uiElements.btnDownload.addEventListener('click', () => {
             if (!generatedICSContent) return;
             const blob = new Blob([generatedICSContent], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a');
@@ -750,7 +744,7 @@
             document.body.removeChild(link);
         });
 
-        document.getElementById('btn-edit').addEventListener('click', () => {
+        uiElements.btnEdit.addEventListener('click', () => {
             uiElements.summaryPanel.style.display = 'none';
             uiElements.inputArea.style.display = 'block';
         });
