@@ -321,6 +321,50 @@
             margin-bottom: 2px !important;
         }
 
+        /* Sekcja błędów */
+        .error-details {
+            border-left: 4px solid #ff4d4d;
+            background-color: #291a1a;
+        }
+
+        .error-item {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #553333;
+            color: #eeeeee;
+        }
+
+        .error-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .error-line {
+            color: #ff4d4d;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .error-reason {
+            color: #ff9999;
+            font-size: 0.95rem;
+        }
+
+        .error-text {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #aaaaaa;
+            background: #1c1111;
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-top: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid #4a2424;
+        }
+
         @media (max-width: 480px) {
             .option-item {
                 flex-direction: column;
@@ -397,6 +441,10 @@
                 <p>🕒 Pierwsza wysyłka: <strong id="time-first">-</strong></p>
                 <p>🕒 Ostatnia wysyłka: <strong id="time-last">-</strong></p>
             </div>
+            <div id="errors-container" class="summary-details error-details" style="display: none;">
+                <p style="color: #ff4d4d; margin-bottom: 15px;">⚠️ <strong>Błędy parsowania (<span id="count-errors">0</span>):</strong></p>
+                <div id="errors-list"></div>
+            </div>
             <div id="overlap-container"></div>
             <div class="summary-actions">
                 <button id="btn-download" class="btn-primary">Pobierz kalendarz (.ics)</button>
@@ -453,6 +501,9 @@
             timeFirst: document.getElementById('time-first'),
             timeLast: document.getElementById('time-last'),
             overlapContainer: document.getElementById('overlap-container'),
+            errorsContainer: document.getElementById('errors-container'),
+            errorsList: document.getElementById('errors-list'),
+            countErrors: document.getElementById('count-errors'),
             btnProcess: document.getElementById('btn-process'),
             btnDownload: document.getElementById('btn-download'),
             btnEdit: document.getElementById('btn-edit')
@@ -494,8 +545,20 @@
             return "⚔️";
         };
 
+        const getLineNumber = (fullText, blockText, startIndex) => {
+            const offset = fullText.indexOf(blockText, startIndex);
+            if (offset === -1) return { line: 1, nextIndex: startIndex };
+
+            let lines = 1;
+            for (let i = 0; i < offset; i++) {
+                if (fullText[i] === '\n') lines++;
+            }
+            return { line: lines, nextIndex: offset + blockText.length };
+        };
+
         const REGEX = {
-            blockSplit: /(?=\d+\.\s+\[b\])/,
+            blockSplit: /(?<!\d)(?=\d+\.\s+\[b\])/,
+            commandStart: /^\s*\d+\.\s*\[b\]/i,
             order: /Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC)/i,
             dateTime: /(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/,
             coords: /(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/,
@@ -524,17 +587,33 @@
                 "METHOD:PUBLISH"
             ];
 
-            const stats = { off: 0, burzak: 0, szlachcic: 0, fejk: 0, errorCount: 0, eventCount: 0 };
+            const stats = { off: 0, burzak: 0, szlachcic: 0, fejk: 0, eventCount: 0 };
+            const parsingErrors = [];
             let firstAttackTime = null;
             let lastAttackTime = null;
             const timeWindows = [];
             const timestamp = Date.now();
+            let searchIndex = 0;
 
             attackBlocks.forEach((block, index) => {
                 if (!block.trim()) return;
 
+                const { line, nextIndex } = getLineNumber(text, block, searchIndex);
+                searchIndex = nextIndex;
+
+                // Pomijamy nagłówek rozpiski/metadane przed pierwszym rozkazem
+                if (index === 0 && !REGEX.commandStart.test(block)) {
+                    return;
+                }
+
                 if (!block.includes('->')) {
-                    if (block.length > 10) stats.errorCount++;
+                    if (block.length > 10) {
+                        parsingErrors.push({
+                            line,
+                            text: block.trim(),
+                            reason: "Brak strzałki kierunkowej (->) - nie rozpoznano wioski wysyłającej/docelowej"
+                        });
+                    }
                     return;
                 }
 
@@ -554,7 +633,11 @@
                     const localEndDate = new Date(`${normalizedDateStr} ${endTimeStr}`);
 
                     if (isNaN(localStartDate.getTime()) || isNaN(localEndDate.getTime())) {
-                        stats.errorCount++;
+                        parsingErrors.push({
+                            line,
+                            text: block.trim(),
+                            reason: "Nieprawidłowa wartość daty lub czasu"
+                        });
                         return;
                     }
 
@@ -582,10 +665,8 @@
                     const uid = `p2ics-${timestamp}-${index}@planer`;
                     const summary = `${emoji} ${orderType} (${sourceCoords} -> ${targetCoords})`;
 
-                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
-                    if (gameUrl) description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
-                    description += `Pełny tekst rozkazu:\\n${block.replace(REGEX.bbcodeTags, '').replace(REGEX.newlines, ' ').trim()}`;
-                    description = description.replace(REGEX.escapeChars, '\\$&');
+                    const cleanBlock = block.replace(REGEX.bbcodeTags, '').replace(REGEX.newlines, ' ').trim();
+                    const description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n${gameUrl ? `LINK DO PLACU: ${gameUrl}\\n\\n` : ''}Pełny tekst rozkazu:\\n${cleanBlock}`.replace(REGEX.escapeChars, '\\$&');
 
                     icsEvents.push(
                         "BEGIN:VEVENT",
@@ -612,14 +693,27 @@
 
                     icsEvents.push("END:VEVENT");
                 } else {
-                    stats.errorCount++;
+                    let reason = "Nieznany błąd formatowania";
+                    if (!dateTimeMatch && !coordsMatch) {
+                        reason = "Brak koordynatów (xxx|yyy) oraz daty/czasu";
+                    } else if (!dateTimeMatch) {
+                        reason = "Nieprawidłowy format lub brak daty i czasu";
+                    } else if (!coordsMatch) {
+                        reason = "Nieprawidłowy format lub brak koordynatów (xxx|yyy)";
+                    }
+
+                    parsingErrors.push({
+                        line,
+                        text: block.trim(),
+                        reason
+                    });
                 }
             });
 
             icsEvents.push("END:VCALENDAR");
 
             if (stats.eventCount === 0) {
-                alert('Nie udało się dopasować struktury ataków. Upewnij się, że wklejasz pełną rozpiskę.');
+                alert('Nie udało się dopasować żadnego rozkazu. Upewnij się, że wklejasz poprawny format rozpiski.');
                 return;
             }
 
@@ -708,6 +802,20 @@
                 }
             }
             uiElements.overlapContainer.innerHTML = overlapHTML;
+
+            // Aktualizacja błędów parsowania
+            if (parsingErrors.length > 0) {
+                uiElements.countErrors.textContent = parsingErrors.length;
+                uiElements.errorsList.innerHTML = parsingErrors.map(err => `
+                    <div class="error-item">
+                        <span class="error-line">Linia ${err.line}:</span> <span class="error-reason">${err.reason}</span>
+                        <div class="error-text" title="${err.text.replace(/"/g, '&quot;')}">${err.text}</div>
+                    </div>
+                `).join('');
+                uiElements.errorsContainer.style.display = 'block';
+            } else {
+                uiElements.errorsContainer.style.display = 'none';
+            }
 
             // Aktualizacja widoku podsumowania
             uiElements.countOff.textContent = stats.off;
