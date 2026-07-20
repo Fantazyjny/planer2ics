@@ -1,4 +1,4 @@
-const CACHE_NAME = 'planer2ics-v1';
+const CACHE_NAME = 'planer2ics-v2';
 const urlsToCache = [
     './',
     './index.html',
