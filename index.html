@@ -144,7 +144,7 @@
     <div class="container">
         <h1>⚔️ Planer2ICS</h1>
         <p class="description">Wklej kod BBCode wygenerowany przez planer ataków (z datami i linkami), ustaw
-            przypomnienia i wygeneruj plik .ics.</p>
+            przypomnienia i wygeneruj plik .ics z pełnymi okienkami czasowymi akcji.</p>
 
         <label for="rawData">Kod BBCode z planera:</label>
         <textarea id="rawData" placeholder="Wklej tutaj tekst rozpiski..."></textarea>
@@ -155,11 +155,11 @@
                 <input type="checkbox" id="useAlarm" checked>
                 <span>Włącz alert w kalendarzu</span>
                 <select id="alarmOffset">
-                    <option value="0">Dokładnie o czasie</option>
-                    <option value="1">1 minutę przed</option>
-                    <option value="2">2 minuty przed</option>
-                    <option value="5" selected>5 minut przed</option>
-                    <option value="10">10 minut przed</option>
+                    <option value="0">Na początku okienka</option>
+                    <option value="1">1 minutę przed okienkiem</option>
+                    <option value="2">2 minuty przed okienkiem</option>
+                    <option value="5" selected>5 minut przed okienkiem</option>
+                    <option value="10">10 minut przed okienkiem</option>
                 </select>
             </div>
         </div>
@@ -210,28 +210,27 @@
                 if (!block.trim() || !block.includes('->')) return;
 
                 // 1. Wyciąganie typu rozkazu i wojska
-                // Szukamy np: Wyślij BURZAK[50k na ZAGRODA + 0 wojska] lub Wyślij FEJK[100 off]
                 const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
                 let orderType = orderMatch ? orderMatch[1] : "Atak";
 
-                // 2. Wyciąganie daty i czasu startu okienka
-                // Szukamy formatu: 2026-07-20 [color=... ]13:17:30
-                const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})/);
+                // 2. Wyciąganie daty oraz czasu startu i końca okienka (np. 13:17:30 - 14:16:30)
+                const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
 
                 // 3. Wyciąganie koordynatów
-                // Szukamy formatu: 526|456 [b]->[/b] 542|467
                 const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
 
                 // 4. Wyciąganie bezpośredniego linku do placu
-                // Szukamy formatu: [url=https://... ]Wyślij...
                 const urlMatch = block.match(/\[url=(https:\/\/[^\]]+)\]/);
 
                 if (dateTimeMatch && coordsMatch) {
                     const dateStr = dateTimeMatch[1];
-                    const timeStr = dateTimeMatch[2];
-                    const icsTimestamp = parseDateToICS(dateStr, timeStr);
+                    const startTimeStr = dateTimeMatch[2];
+                    const endTimeStr = dateTimeMatch[3];
 
-                    if (!icsTimestamp) return;
+                    const icsStartTimestamp = parseDateToICS(dateStr, startTimeStr);
+                    const icsEndTimestamp = parseDateToICS(dateStr, endTimeStr);
+
+                    if (!icsStartTimestamp || !icsEndTimestamp) return;
 
                     eventCount++;
                     const sourceCoords = coordsMatch[1];
@@ -240,24 +239,21 @@
 
                     const uid = `p2ics-${Date.now()}-${index}@planer`;
 
-                    // Ładny i przejrzysty tytuł zdarzenia w kalendarzu
                     const summary = `${orderType} (${sourceCoords} -> ${targetCoords})`;
 
-                    // Opis zdarzenia z linkiem na samym początku (łatwe klikanie na telefonie)
-                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\\n`;
+                    let description = `Koordynaty: ${sourceCoords} -> ${targetCoords}\n`;
                     if (gameUrl) {
-                        description += `LINK DO PLACU: ${gameUrl}\\n\\n`;
+                        description += `LINK DO PLACU: ${gameUrl}\n\n`;
                     }
-                    description += `Pełny tekst rozkazu:\\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[\r\n]+/g, ' ').trim()}`;
+                    description += `Pełny tekst rozkazu:\n${block.replace(/\[\/?[^\]]+\]/g, '').replace(/[]+/g, ' ').trim()}`;
 
-                    // Bezpieczne kodowanie znaków dla ICS
-                    description = description.replace(/[,;]/g, '\\$&');
+                    description = description.replace(/[,;]/g, '\$&');
 
                     icsEvents.push("BEGIN:VEVENT");
                     icsEvents.push(`UID:${uid}`);
-                    icsEvents.push(`DTSTAMP:${icsTimestamp}`);
-                    icsEvents.push(`DTSTART:${icsTimestamp}`);
-                    icsEvents.push(`DURATION:PT1M`);
+                    icsEvents.push(`DTSTAMP:${icsStartTimestamp}`);
+                    icsEvents.push(`DTSTART:${icsStartTimestamp}`);
+                    icsEvents.push(`DTEND:${icsEndTimestamp}`); // Pełny czas trwania okienka wysyłki
                     icsEvents.push(`SUMMARY:⚔️ ${summary}`);
                     icsEvents.push(`DESCRIPTION:${description}`);
                     if (gameUrl) {
@@ -269,7 +265,7 @@
                         icsEvents.push("BEGIN:VALARM");
                         icsEvents.push(`TRIGGER:-PT${alarmOffset}M`);
                         icsEvents.push("ACTION:DISPLAY");
-                        icsEvents.push(`DESCRIPTION:Czas wysłać ${orderType}!`);
+                        icsEvents.push(`DESCRIPTION:Otwiera się okienko na ${orderType}!`);
                         icsEvents.push("END:VALARM");
                     }
 
@@ -280,11 +276,11 @@
             icsEvents.push("END:VCALENDAR");
 
             if (eventCount === 0) {
-                alert('Nie udało się dopasować struktury ataków. Upewnij się, że wklejasz pełną rozpiskę zawierającą numery zadań (np. 1. [b]), daty oraz koordynaty wiosek.');
+                alert('Nie udało się dopasować struktury ataków. Upewnij się, że wklejasz pełną rozpiskę.');
                 return;
             }
 
-            const finalIcs = icsEvents.join('\r\n');
+            const finalIcs = icsEvents.join('');
             const blob = new Blob([finalIcs], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
