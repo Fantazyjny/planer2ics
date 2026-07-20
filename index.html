@@ -433,7 +433,7 @@
                     <span class="stat-value" id="count-off">0</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-icon">💥</span>
+                    <span class="stat-icon">💣</span>
                     <span class="stat-label">Burzaki</span>
                     <span class="stat-value" id="count-burzak">0</span>
                 </div>
@@ -443,7 +443,7 @@
                     <span class="stat-value" id="count-szlachcic">0</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-icon">👻</span>
+                    <span class="stat-icon">🤡</span>
                     <span class="stat-label">Fejki</span>
                     <span class="stat-value" id="count-fejk">0</span>
                 </div>
@@ -539,15 +539,14 @@
                     return;
                 }
 
-                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC|WSPARCIE)/i);
+                const orderMatch = block.match(/Wyślij\s+([^\]]+\]|FEJK|OFF|SZLACHCIC)/i);
                 const orderType = orderMatch ? orderMatch[1] : "Atak";
                 const typeUpper = orderType.toUpperCase();
 
                 let emoji = "⚔️";
                 if (typeUpper.includes("SZLACHCIC")) emoji = "👑";
                 else if (typeUpper.includes("BURZAK")) emoji = "💣";
-                else if (typeUpper.includes("FEJK")) emoji = "👻";
-                else if (typeUpper.includes("WSPARCIE")) emoji = "🛡️";
+                else if (typeUpper.includes("FEJK")) emoji = "🤡";
 
                 const dateTimeMatch = block.match(/(\d{4}-\d{2}-\d{2})\s+(?:\[color=[^\]]+\])?(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})/);
                 const coordsMatch = block.match(/(\d{3}\|\d{3})\s*(?:\[b\])?->(?:\[\/b\])?\s*(\d{3}\|\d{3})/);
