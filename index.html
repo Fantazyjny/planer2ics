@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Planer2ICS - Konwerter Akcji Plemion</title>
+    <title>Planer2ICS - Konwerter Rozpiski na Kalendarz</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -282,13 +282,11 @@
         .overlap-details {
             border-left: 4px solid var(--accent-color);
             background-color: #241d18;
-            /* Delikatnie ciepłe tło */
             flex-direction: column;
         }
 
         .overlap-details p {
             justify-content: center;
-            /* Wyśrodkowanie tekstu kumulacji */
         }
 
         .overlap-details .time-range {
@@ -355,8 +353,8 @@
 <body>
     <div class="container">
         <h1>⚔️ Planer2ICS</h1>
-        <p class="description">Wklej kod BBCode wygenerowany przez planer ataków, ustaw powiadomienia i wygeneruj plik
-            kalendarza.</p>
+        <p class="description">Wklej kod BBCode wygenerowany przez planer ataków, ustaw powiadomienia, przejrzyj
+            podsumowanie i wygeneruj plik kalendarza.</p>
 
         <div id="input-area">
             <label for="rawData">Kod BBCode z planera:</label>
@@ -420,7 +418,6 @@
                 </div>
             </div>
 
-            <!-- Przeniesiono akcję do Event Listenera -->
             <button id="btn-process">Przetwórz i sprawdź rozkazy</button>
         </div>
 
@@ -577,7 +574,7 @@
                     timeWindows.push({
                         start: localStartDate.getTime(),
                         end: localEndDate.getTime(),
-                        id: stats.eventCount // Przypisujemy numer rozkazu z planera
+                        id: stats.eventCount
                     });
 
                     const sourceCoords = coordsMatch[1];
